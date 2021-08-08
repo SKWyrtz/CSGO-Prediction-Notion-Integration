@@ -10,13 +10,10 @@ headers = {
     "Content-Type": "application/json",
     "Notion-Version": "2021-05-13"
 }
-
 def createPage(data):
-
+    print(data)
     createUrl = 'https://api.notion.com/v1/pages'
-
     name = data["team1"] + " vs " + data["team2"]
-
     newPageData = {
         "parent": { "database_id": databaseId },
         "properties": {
@@ -49,16 +46,13 @@ def createPage(data):
             }
         }
     }
-    
     data = json.dumps(newPageData)
     # print(str(uploadData))
-
     res = requests.request("POST", createUrl, headers=headers, data=data)
-
     print(res.status_code)
     print(res.text)
 
-def readDatabase():
+def readNotionDatabase():
     readUrl = f"https://api.notion.com/v1/databases/{databaseId}/query"
 
     res = requests.request("POST", readUrl, headers=headers)
@@ -71,7 +65,7 @@ def readDatabase():
 
 
 def updateNotionDatabase():
-    database_matches = readDatabase()
+    database_matches = readNotionDatabase()
 
     database_match_urls_list = []
     for e in database_matches['results']:
@@ -80,20 +74,13 @@ def updateNotionDatabase():
     
     hltv_matches = webscrape.find_all_stared_matches()
     #print(database_match_urls_list)
-    print(hltv_matches)
-
-    if hltv_matches["url"] not in database_match_urls_list:
-        createPage(hltv_matches)
-    else:
-        print ("not added")
-    '''
-    for m in hltv_matches:
-        print(m)
-        if m['url'] not in database_match_urls_list:
-            print("ADDED")
+    matches = list(hltv_matches.items())
+    matches.pop()
+    for match in matches:
+        if match[1]["url"] not in database_match_urls_list:
+                createPage(match[1])
         else:
-            print("NOT ADDED")
-    '''
+            print ("not added")
 
 
 updateNotionDatabase()
