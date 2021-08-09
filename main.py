@@ -1,5 +1,6 @@
 import requests, json
 import webscrape
+import datetime
 
 token = 'secret_eZO4nNr15zzanm6cOn6eJi30EAsMODJLtudYxAJ5FBL'
 
@@ -11,7 +12,8 @@ headers = {
     "Notion-Version": "2021-05-13"
 }
 def createPage(data):
-    print(data)
+    ISO8601_converted_str = convert_date_string_to_ISO8601(data["date"])
+
     createUrl = 'https://api.notion.com/v1/pages'
     name = data["team1"] + " vs " + data["team2"]
     newPageData = {
@@ -43,14 +45,30 @@ def createPage(data):
                 "select": {
                     "name": data["tournament"]
                 }
+            }, 
+            "Date": {
+                "date": {
+                    "start": ISO8601_converted_str
+                }
             }
         }
     }
-    data = json.dumps(newPageData)
+    data = json.dumps(newPageData, default=str)
     # print(str(uploadData))
     res = requests.request("POST", createUrl, headers=headers, data=data)
     print(res.status_code)
     print(res.text)
+
+def convert_date_string_to_ISO8601(string):
+    print(string)
+    split_string = string.split("-")
+    split_string.pop(0)
+    final_str = []
+    for str in split_string:
+        if str.replace(" ", ""):
+            final_str.append(int(str))
+    print(final_str)
+    return datetime.datetime(final_str[0], final_str[1], final_str[2], final_str[3], final_str[4], tzinfo=datetime.timezone(datetime.timedelta(hours=2)))
 
 def readNotionDatabase():
     readUrl = f"https://api.notion.com/v1/databases/{databaseId}/query"
@@ -73,7 +91,7 @@ def updateNotionDatabase():
         database_match_urls_list.append(database_match_url)
     
     hltv_matches = webscrape.find_all_stared_matches()
-    #print(database_match_urls_list)
+
     matches = list(hltv_matches.items())
     matches.pop()
     for match in matches:
